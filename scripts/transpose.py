@@ -7,7 +7,7 @@ from update import DatabaseUpdate
 class Transpose:
     
     def __init__(self):
-        
+    
         self.Music_Pitch_System = pd.read_excel(r'C:\Users\wesle\Desktop\2020\Code\main\Easy Transpose\easy-transpose-master\datasets\music notes dataset.xlsx')
         
         self.instruments_IntervalPairs_pitchwise = {
@@ -54,67 +54,56 @@ class Transpose:
         'Xylophone': [7,-7],
         'Celesta': [7,-7]}
 
-        self.database_connect = True
-        
-        self.all_notes = None
-        
-        return
+        self.database_connect = True    
+        self.all_notes = None 
     
     
-    # Instrument name taken as string input
-    # Fetches transposition intervals for specefied instrument
-    # Returns two interval pairs (0 = Pitchwise, 1 = Stepwise)
-    # Needs more instruments in database
-
+    
     def instrument_transposition_intervals(self, user_instrument):
         
+        """ 
+        Instrument name taken as string input
+        Fetches transposition intervals for specefied instrument
+        Returns two interval pairs (0 = Pitchwise, 1 = Stepwise)
+        Needs more instruments in database
+        """ 
+        
         #Transposition Intervals
-        #(0)W -> CP
-        #(1)CP -> W
-
+        #(0)Written -> Concert Pitch
+        #(1)Concert Pitch -> Written
         instrument_pair_pitchwise = self.instruments_IntervalPairs_pitchwise[user_instrument]
-
         instrument_pair_stepwise = self.instruments_IntervalPairs_stepwise[user_instrument]
 
         return instrument_pair_pitchwise, instrument_pair_stepwise
     
     
-    # Takes string as input (Written/Concert Pitch)
-    # Returns 0 if starting with written, 1 if starting with concert
-    # Overall this 0 or 1 is used to represent whether a user is starting with written or concert pitch
+    
 
     def starting_direction(self, user_direction):
-        
-        
+        """
+        Takes string as input (Written/Concert Pitch)
+        Returns 0 if starting with written, 1 if starting with concert
+        Overall this 0 or 1 is used to represent whether a user is starting with written or concert pitch
+        """
         if user_direction == "Written":
             direction = 0
-
         elif user_direction == "Concert":
             direction = 1
-
         return direction
 
         
-        
-    # Takes string as input, which is the user starting pitch. ex C#2, Dbb7, E#6
-    # This code transforms user starting pitch string, 
-    # into an array of all the possible note names for that specific pitch.
-    # This also creates a ground truth pitch integer for the user start pitch (row number in Music Pitch System)
-    # This ground truth pitch integer will be used in transposition calculation.
-
+     
 
     def calculate_ground_truth_pitch(self, user_pitch):
         
-        
-        # Array of all possible, notatable forms of every pitch.
-        # Ground Truth gives MIDI standard of pitch 
-        # flat (b)
-        # double-flat (bb)
-        # sharp (#)   
-        # double-sharp (X)
-        
-        
-
+        """
+        Takes string as input, which is the user starting pitch. ex C#2, Dbb7, E#6
+        This code transforms user starting pitch string, 
+        into an array of all the possible note names for that specific pitch.
+        This also creates a ground truth pitch integer for the user start pitch (row number in Music Pitch System)
+        This ground truth pitch integer will be used in transposition calculation.
+        """
+     
         # Calculate user pitch ID
         #user_pitch_ID = (pitchClassFlats.index(userStartPitch))
         user_pitch_full = np.column_stack([self.Music_Pitch_System[col].str.contains(user_pitch, na=False) for col in self.Music_Pitch_System])
@@ -130,9 +119,7 @@ class Transpose:
         ground_truth_pitch_ID = int(step_2)
 
         return user_pitch_list, ground_truth_pitch_ID
-    
-    
-        
+      
         
     # Takes user start pitch as input (string),
     # Returns step_note (A,B,C,D,E,F,G 1-10) and step_ID (used for stepwise transposition calculation)
@@ -163,10 +150,8 @@ class Transpose:
             step_note = user_pitch.replace("X","")
         else:
             step_note = user_pitch
-
-
+            
         step_ID = steps.index(step_note)
-
 
         return step_note, step_ID
         
@@ -197,10 +182,8 @@ class Transpose:
 
         transposed_pitch_ID = ground_truth_pitch_ID + x
 
-
         return transposed_pitch_ID
-
-    
+   
     # Transpose Stepwise
 
     # Takes as inputs:
@@ -223,7 +206,6 @@ class Transpose:
         if user_direction == 1:
             transposed_step_ID = (ground_truth_pitch_ID + pitchwise_interval[1])
 
-
         return transposed_step_ID
         
         
@@ -233,7 +215,6 @@ class Transpose:
         
         # Search Music Pitch System to fetch array of possible pitch names
         user_pitch_full = self.Music_Pitch_System.query(str(ground_truth_final_pitch_int))
-
 
         note_0 = str(self.Music_Pitch_System.iloc[ground_truth_final_pitch_int, 0])
         note_1 = str(self.Music_Pitch_System.iloc[ground_truth_final_pitch_int, 1])
@@ -259,28 +240,20 @@ class Transpose:
             if true_false == True:
                 final = (notes[itr])
                 break
-
             else:
                 itr = itr+1
-
 
             # see if note_iter shares characters with step_name
             # look at each value in note_iter and decide whether it is similar to step_name
 
         return final
-        
-        
-   
 
     def transpose(self, user_instrument,user_pitch,user_direction):
         
-        # this is the master function, which utilizes all methods above to transpose a given query
-        
-
+        # this is the master function, which utilizes all methods above to transpose a given query     
         # Fetch transposition intervals for instrument (pitchwise, stepwise)
         self.instrument_pair_pitchwise, self.instrument_pair_stepwise = self.instrument_transposition_intervals(user_instrument)
         #print("- Pitchwise Interval Pair: ",instrument_pair_pitchwise,"\n"+"- Stepwise Interval Pair: ", instrument_pair_stepwise)
-
 
         # Start direction (0 = written, 1 = concert)
         direction = self.starting_direction(user_direction)
@@ -300,18 +273,14 @@ class Transpose:
         #print("Ground Truth Step ID: ",step_note, step_ID)
         #print("Direction:",direction,"(0 = written, 1 = concert)")
 
-
-
         # Pitchwise Transposition, Return ground_truth_list for new, transposed pitch
         transposed_pitch_ID = self.transpose_pitchwise(ground_truth_pitch_ID, user_instrument,direction)
     #print("Transposed Pitch ID: ",transposed_pitch_ID)
     
-    
         # Calculate Transposed Step ID 
         transposed_step_ID = self.transpose_stepwise(step_ID, user_instrument,direction)
         #print("Transposed Step ID: ",transposed_step_ID,)
-
-
+        
         steps = ['C0','D0','E0','F0','G0','A0','B0',
            'C1','D1','E1','F1','G1','A1','B1',
            'C2','D2','E2','F2','G2','A2','B2',
@@ -333,15 +302,12 @@ class Transpose:
 
         # Remove numbers from Step
 
-
          # Use official_Step to search groundtruth list
         Final_Note = self.FinalNote(transposed_pitch_ID,step_name) 
-
 
         # This is your final note!
         # Print on screen using notation
         # Print with MIDI
-        
         
         # update MySQL database 
         if self.database_connect == True:
@@ -350,6 +316,5 @@ class Transpose:
         # if no database connection, pass
         else:
             pass
-        
         
         return Final_Note
