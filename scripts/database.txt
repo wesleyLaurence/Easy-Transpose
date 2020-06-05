@@ -1,9 +1,0 @@
-CREATE TABLE transpose (
-TransposeID INT NOT NULL AUTO_INCREMENT,
-StartNote VARCHAR(5) NOT NULL, 
-TransposeNote VARCHAR(5) NOT NULL, 
-StartPosition VARCHAR(15) NOT NULL, 
-Instrument VARCHAR(50) NOT NULL,
-EventDateTime DATETIME NOT NULL,
-CONSTRAINT PK_transpose PRIMARY KEY (TransposeID)
-);
